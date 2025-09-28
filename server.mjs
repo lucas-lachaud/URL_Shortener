@@ -7,6 +7,13 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // pour POST formulaire
 
+// Pour parser le JSON
+app.use(express.json());
+
+// Servir les fichiers statiques
+app.use(express.static("static"));
+
+
 // config EJS
 app.set("view engine", "ejs");
 app.set("views", "./views");

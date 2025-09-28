@@ -150,3 +150,23 @@ Réponse :
 http GET http://localhost:5000/api-v2/abc123 Accept:application/xml
 ```
 Réponse : HTTP 406 Not Acceptable
+
+# URL Shortener - Partie 4 (Client AJAX)
+
+Interface web utilisant AJAX pour interagir avec l'API v2.
+
+## Utilisation
+
+1. **Lancer le serveur Node.js :**
+```bash
+npm run dev
+```
+
+2. **Ouvrir dans le navigateur :**
+```
+http://localhost:5000/index.html
+```
+
+3. **Saisir une URL et cliquer sur Raccourcir.**
+
+4. **Cliquer sur Copier l'URL pour copier le lien.**
