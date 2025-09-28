@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>URL Shortener</title>
+</head>
+<body>
+  <h1>Bienvenue sur le service de réduction d’URL</h1>
+  <p>Nombre de liens créés : <%= count %></p>
+  <form method="POST" action="/api-v2/">
+    <input type="url" name="url" placeholder="Entrez votre URL" required>
+    <button type="submit">Raccourcir</button>
+  </form>
+</body>
+</html>
