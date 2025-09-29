@@ -1,0 +1,322 @@
+openapi: 3.0.3
+info:
+  title: URL Shortener API
+  version: "1.0.0"
+  description: |
+    Spécification OpenAPI décrivant les routes exposées par le service de raccourcissement d'URL.
+servers:
+  - url: http://localhost:5000
+    description: Serveur de développement local
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+  parameters:
+    ShortCodeParam:
+      name: code
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+      description: Identifiant unique du lien raccourci.
+  schemas:
+    LinkCount:
+      type: object
+      required:
+        - count
+      properties:
+        count:
+          type: integer
+          minimum: 0
+          description: Nombre de liens actuellement enregistrés.
+          example: 42
+    CreateLinkRequest:
+      type: object
+      required:
+        - url
+      properties:
+        url:
+          type: string
+          format: uri
+          description: URL à raccourcir; doit commencer par http:// ou https://.
+      example:
+        url: https://example.com/ma-longue-url
+    CreateLinkResponse:
+      type: object
+      required:
+        - code
+        - url
+        - shortUrl
+        - secret
+      properties:
+        code:
+          type: string
+          description: Code court généré.
+          example: AbC123
+        url:
+          type: string
+          format: uri
+          description: URL originale.
+          example: https://example.com/ma-longue-url
+        shortUrl:
+          type: string
+          format: uri
+          description: URL complète permettant d'accéder au lien raccourci.
+          example: http://localhost:5000/api-v2/AbC123
+        secret:
+          type: string
+          description: Jeton secret requis pour supprimer le lien.
+          example: 9f1a2b3c
+    Link:
+      type: object
+      required:
+        - code
+        - url
+        - created_at
+        - visits
+      properties:
+        code:
+          type: string
+          description: Code court associé au lien.
+          example: AbC123
+        url:
+          type: string
+          format: uri
+          description: URL cible.
+          example: https://example.com/ma-longue-url
+        created_at:
+          type: string
+          format: date-time
+          description: Date de création du lien (ISO 8601).
+          example: 2024-03-18T15:08:03.000Z
+        visits:
+          type: integer
+          minimum: 0
+          description: Nombre de visites enregistrées.
+          example: 12
+    DeletionResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: Link deleted successfully
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          example: Invalid URL
+
+paths:
+  # ----------------
+  # API v1
+  # ----------------
+  /api-v1:
+    get:
+      summary: Liste de tous les liens créés (v1)
+      operationId: listLinksV1
+      responses:
+        '200':
+          description: Liste de liens
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Link'
+    post:
+      summary: Créer un lien court (v1)
+      operationId: createLinkV1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLinkRequest'
+      responses:
+        '200':
+          description: Lien créé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateLinkResponse'
+
+  /api-v1/{code}:
+    parameters:
+      - $ref: '#/components/parameters/ShortCodeParam'
+    get:
+      summary: Redirection vers l’URL originale (v1)
+      operationId: redirectLinkV1
+      responses:
+        '302':
+          description: Redirection vers l’URL originale
+          headers:
+            Location:
+              schema:
+                type: string
+        '404':
+          description: Lien introuvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api-v1/status/{code}:
+    parameters:
+      - $ref: '#/components/parameters/ShortCodeParam'
+    get:
+      summary: Voir les statistiques d’un lien (v1)
+      operationId: statusLinkV1
+      responses:
+        '200':
+          description: Statistiques du lien
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Link'
+        '404':
+          description: Lien introuvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ----------------
+  # API v2
+  # ----------------
+  /api-v2:
+    get:
+      summary: Obtenir le nombre total de liens enregistrés
+      description: |
+        Retourne le nombre total de liens raccourcis stockés. Si le client demande du HTML, la page d'accueil EJS est renvoyée.
+      operationId: listLinkCount
+      responses:
+        '200':
+          description: Nombre actuel de liens ou page HTML d'accueil.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinkCount'
+            text/html:
+              schema:
+                type: string
+        '406':
+          description: Format de réponse non supporté.
+        '500':
+          description: Erreur interne du serveur.
+    post:
+      summary: Créer un nouveau lien raccourci
+      description: |
+        Génère un code aléatoire pour l'URL fournie et renvoie les informations du lien.
+      operationId: createLink
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLinkRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CreateLinkRequest'
+      responses:
+        '200':
+          description: Lien créé.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateLinkResponse'
+        '400':
+          description: URL invalide.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '406':
+          description: Format de réponse non supporté.
+        '500':
+          description: Erreur interne du serveur.
+
+  /api-v2/{code}:
+    parameters:
+      - $ref: '#/components/parameters/ShortCodeParam'
+    get:
+      summary: Récupérer un lien à partir de son code
+      description: |
+        Retourne les informations du lien demandé en JSON ou redirige vers l'URL cible pour les clients HTML.
+      operationId: getLink
+      responses:
+        '200':
+          description: Informations du lien.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Link'
+        '302':
+          description: Redirection vers l'URL cible lorsque `text/html` est demandé.
+          headers:
+            Location:
+              description: URL cible.
+              schema:
+                type: string
+                format: uri
+        '404':
+          description: Lien introuvable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '406':
+          description: Format de réponse non supporté.
+        '500':
+          description: Erreur interne du serveur.
+    delete:
+      summary: Supprimer un lien raccourci
+      description: |
+        Supprime le lien correspondant au code fourni. Nécessite la clé API associée au lien (`X-API-Key`).
+      operationId: deleteLink
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: Lien supprimé avec succès.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeletionResponse'
+        '401':
+          description: Clé API manquante.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Clé API invalide.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Lien introuvable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Erreur interne du serveur.
+
+  /error:
+    get:
+      summary: Déclencher une erreur serveur (diagnostic)
+      description: Route de test renvoyant systématiquement une erreur 500 pour vérifier la gestion des erreurs.
+      operationId: triggerError
+      responses:
+        '500':
+          description: Erreur déclenchée intentionnellement

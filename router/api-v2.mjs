@@ -1,8 +1,10 @@
 import express from "express";
 import { createLink, getLink, incVisit, countLinks } from "../database/database.mjs";
 import { LINK_LEN } from "../config.mjs";
+import { getLinkWithSecret, deleteLink } from "../database/database.mjs";
 
 const router = express.Router();
+
 
 // Générateur simple de code
 function genCode(len) {
@@ -40,9 +42,12 @@ router.post("/", async (req, res, next) => {
     const link = await createLink(code, url);
 
     res.format({
-      "application/json": () => res.json(link),
-      "text/html": () => res.render("link_created", link),
-      default: () => res.status(406).send("Not Acceptable")
+      "application/json": () => res.json({
+        code: link.code,
+        url: link.url,
+        shortUrl: `http://localhost:5000/api-v2/${link.code}`,
+        secret: link.secret
+      })
     });
 
   } catch (e) {
@@ -65,6 +70,29 @@ router.get("/:code", async (req, res, next) => {
       },
       default: () => res.status(406).send("Not Acceptable")
     });
+
+  } catch (e) {
+    next(e);
+  }
+});
+
+
+router.delete("/:code", async (req, res, next) => {
+  try {
+    const { code } = req.params;
+    const apiKey = req.header("X-API-Key");
+
+    const link = await getLinkWithSecret(code);
+    if (!link) return res.status(404).json({ error: "Not found" });
+
+    if (!apiKey) return res.status(401).json({ error: "Missing X-API-Key" });
+
+    if (link.secret !== apiKey) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    await deleteLink(code);
+    return res.status(200).json({ message: "Link deleted successfully" });
 
   } catch (e) {
     next(e);

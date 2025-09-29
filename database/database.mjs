@@ -2,6 +2,7 @@ import sqlite3 from "sqlite3";
 import { open } from "sqlite";
 import fs from "fs";
 import { DB_FILE, DB_SCHEMA } from "../config.mjs";
+import crypto from "crypto";
 
 let db;
 
@@ -19,15 +20,26 @@ export function getDB() {
 
 export async function createLink(code, url) {
   const now = new Date().toISOString();
+  const secret = crypto.randomBytes(4).toString("hex"); 
+
   await getDB().run(
-    "INSERT INTO links (code, url, created_at, visits) VALUES (?, ?, ?, 0)",
-    [code, url, now]
+    "INSERT INTO links (code, url, created_at, visits, secret) VALUES (?, ?, ?, 0, ?)",
+    [code, url, now, secret]
   );
-  return { code, url, created_at: now, visits: 0 };
+
+  return { code, url, created_at: now, visits: 0, secret };
 }
 
 export async function getLink(code) {
+  return getDB().get("SELECT code, url, created_at, visits FROM links WHERE code = ?", [code]);
+}
+
+export async function getLinkWithSecret(code) {
   return getDB().get("SELECT * FROM links WHERE code = ?", [code]);
+}
+
+export async function deleteLink(code) {
+  return getDB().run("DELETE FROM links WHERE code = ?", [code]);
 }
 
 export async function incVisit(code) {
