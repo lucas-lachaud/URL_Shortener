@@ -1,4 +1,6 @@
-const originURL = "http://localhost:5000/api-v2/";
+const API_PATH = "/api-v2/";
+const siteOrigin = window.location.origin;
+const apiBase = `${siteOrigin}${API_PATH}`;
 
 const urlForm = document.getElementById("urlForm");
 const input = document.getElementById("urlInput");
@@ -33,16 +35,17 @@ function normalizeCode(value) {
 
   try {
     const parsed = new URL(trimmed);
-    const parts = parsed.pathname.split("/").filter(Boolean);
-    if (parts.length) {
-      return parts[parts.length - 1];
-    }
+    trimmed = parsed.pathname;
   } catch (err) {
-    
+    if (!trimmed.startsWith("/")) {
+      trimmed = `/${trimmed}`;
+    }
   }
 
-  if (trimmed.startsWith(originURL)) {
-    trimmed = trimmed.slice(originURL.length);
+  if (trimmed.startsWith(API_PATH)) {
+    trimmed = trimmed.slice(API_PATH.length);
+  } else if (trimmed.startsWith("/")) {
+    trimmed = trimmed.slice(1);
   }
 
   return trimmed.replace(/^\/+/, "").split("/")[0];
@@ -55,7 +58,7 @@ urlForm.addEventListener("submit", async (e) => {
   if (!url) return;
 
   try {
-    const response = await fetch(originURL, {
+    const response = await fetch(apiBase, {
       method: "POST",
       headers: { "Content-Type": "application/json", "Accept": "application/json" },
       body: JSON.stringify({ url })
@@ -67,7 +70,7 @@ urlForm.addEventListener("submit", async (e) => {
       return;
     }
 
-    const shortURL = `${originURL}${data.code}`;
+    const shortURL = data.shortUrl || `${apiBase}${data.code}`;
     resultDiv.innerHTML = `
       <p>Lien raccourci : <a href="${shortURL}" target="_blank">${shortURL}</a></p>
       <p>Secret pour suppression : <strong>${data.secret}</strong></p>
@@ -92,7 +95,7 @@ deleteForm.addEventListener("submit", async (e) => {
   if (!code || !key) return;
 
   try {
-    const response = await fetch(originURL + code, {
+    const response = await fetch(`${apiBase}${code}`, {
       method: "DELETE",
       headers: { "Accept": "application/json", "X-API-Key": key }
     });

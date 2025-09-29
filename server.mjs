@@ -8,6 +8,7 @@ import yaml from "js-yaml";
 import path from "path";
 
 const app = express();
+app.set("trust proxy", 1);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // pour POST formulaire
 

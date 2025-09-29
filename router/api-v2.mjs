@@ -41,11 +41,16 @@ router.post("/", async (req, res, next) => {
     const code = genCode(LINK_LEN);
     const link = await createLink(code, url);
 
+    const host = req.get("host");
+    const shortUrl = host
+      ? `${req.protocol}://${host}${req.baseUrl}/${link.code}`
+      : `${req.baseUrl}/${link.code}`;
+
     res.format({
       "application/json": () => res.json({
         code: link.code,
         url: link.url,
-        shortUrl: `http://localhost:5000/api-v2/${link.code}`,
+        shortUrl,
         secret: link.secret
       })
     });
