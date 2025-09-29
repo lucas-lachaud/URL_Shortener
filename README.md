@@ -243,10 +243,10 @@ http POST http://localhost:5000/api-v2/ url="https://perdu.com" Accept:applicati
 **Réponse :**
 ```json
 {
-  "short_url": "HdPWk7",
-  "original_url": "https://perdu.com",
-  "secret": "RatQak",
-  "created_at": "2024-03-15T10:30:00Z"
+    "code": "Oz3N22",
+    "secret": "c7f1a0b6",
+    "shortUrl": "http://localhost:5000/api-v2/Oz3N22",
+    "url": "https://perdu.com"
 }
 ```
 
@@ -254,16 +254,16 @@ http POST http://localhost:5000/api-v2/ url="https://perdu.com" Accept:applicati
 
 #### 2. Consulter les informations du lien
 ```bash
-http GET http://localhost:5000/api-v2/HdPWk7 Accept:application/json
+http GET http://localhost:5000/api-v2/Oz3N22 Accept:application/json
 ```
 
 **Réponse :**
 ```json
 {
-  "short_url": "HdPWk7",
-  "original_url": "https://perdu.com",
-  "visits": 0,
-  "created_at": "2024-03-15T10:30:00Z"
+    "code": "Oz3N22",
+    "created_at": "2025-09-29T04:56:38.836Z",
+    "url": "https://perdu.com",
+    "visits": 0
 }
 ```
 
@@ -271,22 +271,25 @@ http GET http://localhost:5000/api-v2/HdPWk7 Accept:application/json
 
 #### 3. Utiliser la redirection
 ```bash
-curl -I http://localhost:5000/api-v2/HdPWk7
+curl -I http://localhost:5000/api-v2/Oz3N22
 ```
 
 #### 4. Supprimer le lien
 ```bash
-http DELETE http://localhost:5000/api-v2/HdPWk7 X-API-Key:RatQak
+http DELETE http://localhost:5000/api-v2/Oz3N22 X-API-Key:c7f1a0b6
 ```
 
 **Réponse :** `200 OK`
+```json
+{
+    "message": "Link deleted successfully"
+}
+```
 
 ### Documentation interactive
 
 La documentation Swagger est disponible à l'adresse :
-http://localhost:5000/docs
-
-L'interface inclut un champ d'authentification avec un cadenas 🔒 pour saisir la clé `X-API-Key` lors des tests de suppression.
+http://localhost:5000/api-docs/
 
 ### Gestion des erreurs
 
