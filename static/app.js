@@ -75,7 +75,6 @@ urlForm.addEventListener("submit", async (e) => {
     resultDiv.innerHTML = `
       <p>Lien raccourci : <a href="${shortURL}" target="_blank">${shortURL}</a></p>
       <p>Secret pour suppression : <strong>${data.secret}</strong></p>
-      <p>Endpoint API : <a href="${apiURL}" target="_blank">${apiURL}</a></p>
       <button id="copyBtn">Copier l'URL</button>
     `;
 
