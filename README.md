@@ -318,13 +318,12 @@ http DELETE http://localhost:5000/api-v2/HdPWk7 X-API-Key:mauvaise-cle
 La base de données SQLite a été étendue avec un nouveau champ `secret` :
 
 ```sql
-CREATE TABLE urls (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  short_url TEXT UNIQUE NOT NULL,
-  original_url TEXT NOT NULL,
-  visits INTEGER DEFAULT 0,
-  secret TEXT NOT NULL,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE IF NOT EXISTS links (
+  code TEXT PRIMARY KEY,
+  url TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  visits INTEGER NOT NULL DEFAULT 0,
+  secret TEXT NOT NULL
 );
 ```
 
