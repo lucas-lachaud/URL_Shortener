@@ -42,15 +42,18 @@ router.post("/", async (req, res, next) => {
     const link = await createLink(code, url);
 
     const host = req.get("host");
-    const shortUrl = host
-      ? `${req.protocol}://${host}${req.baseUrl}/${link.code}`
-      : `${req.baseUrl}/${link.code}`;
+    const protocol = req.protocol;
+    const apiPath = `${req.baseUrl}/${link.code}`;
+    const shortPath = `/${link.code}`;
+    const apiUrl = host ? `${protocol}://${host}${apiPath}` : apiPath;
+    const shortUrl = host ? `${protocol}://${host}${shortPath}` : shortPath;
 
     res.format({
       "application/json": () => res.json({
         code: link.code,
         url: link.url,
         shortUrl,
+        apiUrl,
         secret: link.secret
       })
     });
@@ -66,15 +69,15 @@ router.get("/:code", async (req, res, next) => {
     const link = await getLink(req.params.code);
     if (!link) return res.status(404).send("Not found");
 
-    res.format({
-      "application/json": () => res.json(link),
-      "text/html": async () => {
-        await incVisit(req.params.code);
-        res.set("Cache-Control", "no-store");
-        res.redirect(link.url);
-      },
-      default: () => res.status(406).send("Not Acceptable")
-    });
+    const preferred = req.accepts(["json", "html"]);
+
+    if (preferred === "json") {
+      return res.json(link);
+    }
+
+    await incVisit(req.params.code);
+    res.set("Cache-Control", "no-store");
+    res.redirect(link.url);
 
   } catch (e) {
     next(e);

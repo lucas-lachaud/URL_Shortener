@@ -1,5 +1,5 @@
 import express from "express";
-import { initDB } from "./database/database.mjs";
+import { initDB, getLink, incVisit } from "./database/database.mjs";
 import apiV2 from "./router/api-v2.mjs";
 import { PORT } from "./config.mjs";
 import swaggerUi from "swagger-ui-express";
@@ -25,6 +25,24 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // API v2
 app.use("/api-v2", apiV2);
+
+const RESERVED_CODES = new Set(["api", "api-v1", "api-v2", "api-docs", "swagger-ui"]);
+
+app.get("/:code([A-Za-z0-9]{3,})", async (req, res, next) => {
+  const { code } = req.params;
+  if (RESERVED_CODES.has(code)) return next();
+
+  try {
+    const link = await getLink(code);
+    if (!link) return next();
+
+    await incVisit(code);
+    res.set("Cache-Control", "no-store");
+    res.redirect(link.url);
+  } catch (err) {
+    next(err);
+  }
+});
 
 // Route test erreur
 app.get("/error", () => { throw new Error("Erreur 500 testée"); });
