@@ -132,8 +132,8 @@ process.on('SIGINT', () => {
 ### 10. Partage de base de données entre instances
 
 **Configuration testée :**
-- Instance 1 : Port 8080 (`npm run dev`)
-- Instance 2 : Port 8081 (`cross-env PORT=8081 NODE_ENV=development npx nodemon src/app.js`)
+- Instance 1 : Port 5000 (`npm run dev`)
+- Instance 2 : Port 5001 (`cross-env PORT=8081 NODE_ENV=development npx nodemon src/app.js`)
 
 **Résultat observé :**
 Les liens créés sur une instance sont visibles sur l'autre instance.
@@ -147,8 +147,3 @@ Les liens créés sur une instance sont visibles sur l'autre instance.
 
 **Note technique :** SQLite gère automatiquement les verrous de fichier pour éviter les conflits lors d'écritures simultanées, ce qui permet ce partage de données entre processus.
 
----
-
-## Tags Git appliqués
-
-- `reponses` : Version avec les réponses aux questions techniques
